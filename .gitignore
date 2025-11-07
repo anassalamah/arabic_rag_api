@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Milvus databases
+*.db
+*.db-shm
+*.db-wal
+milvus_*.db
+
+# Data files (too large for git)
+manhaj2030_books_cleaned_v1/
+*.zip
+*.txt.gz
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Environment variables
+.env
+.env.local
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Model cache (sentence-transformers downloads)
+.cache/
+models/
+
+# Test files
+test_ingest.py
+milvus_test.db
+
