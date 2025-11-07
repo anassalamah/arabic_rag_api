@@ -8,8 +8,8 @@ from sentence_transformers import SentenceTransformer
 import uvicorn
 
 # --- Configuration ---
-_MILVUS_URI = os.getenv("MILVUS_URI", "./milvus_test.db")  # Using Milvus Lite (embedded) - TEST DATABASE
-_COLLECTION_NAME = "arabic_books_test"  # TEST COLLECTION
+_MILVUS_URI = os.getenv("MILVUS_URI", "./milvus_arabic_books.db")  # Using Milvus Lite (embedded) - PRODUCTION DATABASE
+_COLLECTION_NAME = "arabic_books"  # PRODUCTION COLLECTION
 _MODEL_NAME = "intfloat/multilingual-e5-large"
 
 # --- Global Objects ---

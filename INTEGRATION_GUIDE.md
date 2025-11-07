@@ -1,6 +1,6 @@
 # Arabic RAG API - Integration Guide
 
-**Base URL**: `http://203.57.40.119:8001`
+**Base URL**: `https://kaohoz7ihe09do-8001.proxy.runpod.net`
 
 ---
 
@@ -81,7 +81,7 @@ When full ingestion is complete, these book categories will be available:
 
 ### Example 1: Basic Search
 ```bash
-curl -X POST http://203.57.40.119:8001/search \
+curl -X POST https://kaohoz7ihe09do-8001.proxy.runpod.net/search \
   -H "Content-Type: application/json" \
   -d '{
     "query": "البخاري",
@@ -91,7 +91,7 @@ curl -X POST http://203.57.40.119:8001/search \
 
 ### Example 2: Search with Filter
 ```bash
-curl -X POST http://203.57.40.119:8001/search \
+curl -X POST https://kaohoz7ihe09do-8001.proxy.runpod.net/search \
   -H "Content-Type: application/json" \
   -d '{
     "query": "الحديث النبوي",
@@ -105,7 +105,7 @@ curl -X POST http://203.57.40.119:8001/search \
 import requests
 
 response = requests.post(
-    "http://203.57.40.119:8001/search",
+    "https://kaohoz7ihe09do-8001.proxy.runpod.net/search",
     json={
         "query": "أبو هريرة",
         "top_n": 3,
@@ -121,7 +121,7 @@ for result in results:
 
 ### Example 4: JavaScript
 ```javascript
-const response = await fetch('http://203.57.40.119:8001/search', {
+const response = await fetch('https://kaohoz7ihe09do-8001.proxy.runpod.net/search', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
@@ -170,4 +170,4 @@ console.log(results);
 
 ---
 
-**API Documentation**: Visit `http://203.57.40.119:8001/docs` for interactive testing
+**API Documentation**: Visit `https://kaohoz7ihe09do-8001.proxy.runpod.net/docs` for interactive testing

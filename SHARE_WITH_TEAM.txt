@@ -2,15 +2,15 @@
 ARABIC RAG API - READY FOR INTEGRATION
 ================================================
 
-API ENDPOINT: http://203.57.40.119:8001
+API ENDPOINT: https://kaohoz7ihe09do-8001.proxy.runpod.net
 
-Interactive Documentation: http://203.57.40.119:8001/docs
+Interactive Documentation: https://kaohoz7ihe09do-8001.proxy.runpod.net/docs
 
 ================================================
 QUICK TEST
 ================================================
 
-curl -X POST http://203.57.40.119:8001/search \
+curl -X POST https://kaohoz7ihe09do-8001.proxy.runpod.net/search \
   -H "Content-Type: application/json" \
   -d '{"query": "البخاري", "top_n": 3}'
 

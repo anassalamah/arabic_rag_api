@@ -17,6 +17,7 @@ _DATA_PATH = "manhaj2030_books_cleaned_v1"
 _MODEL_NAME = "intfloat/multilingual-e5-large"
 _CHUNK_SIZE = 512
 _CHUNK_OVERLAP = 64
+_BATCH_SIZE = 100  # Process embeddings in batches to avoid memory issues
 
 # --- Milvus Schema Definition ---
 # The schema now includes 'book_name' which is essential for filtering.
@@ -58,48 +59,71 @@ def main():
         book_path = os.path.join(_DATA_PATH, book_folder)
         if os.path.isdir(book_path):
             print(f"\nProcessing Book: {book_folder}")
+            file_count = 0
             for filename in os.listdir(book_path):
                 if filename.endswith(".txt"):
+                    file_count += 1
                     file_path = os.path.join(book_path, filename)
                     try:
                         with open(file_path, 'r', encoding='utf-8') as f:
                             text = f.read()
                         
+                        file_size_mb = len(text) / (1024 * 1024)
                         chunks = [text[i:i + _CHUNK_SIZE] for i in range(0, len(text), _CHUNK_SIZE - _CHUNK_OVERLAP)]
                         if not chunks: continue
                         
-                        prefixed_chunks = [f"passage: {chunk}" for chunk in chunks]
-                        embeddings = model.encode(prefixed_chunks, show_progress_bar=False)
+                        print(f"  - File {file_count}: {filename} ({file_size_mb:.2f} MB, {len(chunks)} chunks)")
                         
-                        # Data to insert includes the book_folder as the 'book_name'
-                        # Order must match schema: embedding, book_name, file_path, chunk_text, chunk_index
-                        data_to_insert = [
-                            embeddings.tolist(),
-                            [book_folder] * len(chunks),
-                            [file_path] * len(chunks),
-                            chunks,
-                            list(range(len(chunks)))
-                        ]
+                        # Process chunks in batches to avoid memory issues
+                        for batch_start in range(0, len(chunks), _BATCH_SIZE):
+                            batch_end = min(batch_start + _BATCH_SIZE, len(chunks))
+                            batch_chunks = chunks[batch_start:batch_end]
+                            
+                            prefixed_chunks = [f"passage: {chunk}" for chunk in batch_chunks]
+                            embeddings = model.encode(prefixed_chunks, show_progress_bar=False)
+                            
+                            # Data to insert includes the book_folder as the 'book_name'
+                            # Order must match schema: embedding, book_name, file_path, chunk_text, chunk_index
+                            data_to_insert = [
+                                embeddings.tolist(),
+                                [book_folder] * len(batch_chunks),
+                                [file_path] * len(batch_chunks),
+                                batch_chunks,
+                                list(range(batch_start, batch_end))
+                            ]
+                            
+                            collection.insert(data_to_insert)
+                            total_chunks_inserted += len(batch_chunks)
+                            
+                            if batch_end % (_BATCH_SIZE * 10) == 0 or batch_end == len(chunks):
+                                print(f"    Progress: {batch_end}/{len(chunks)} chunks processed")
                         
-                        collection.insert(data_to_insert)
-                        total_chunks_inserted += len(chunks)
-                        print(f"  - Inserted {len(chunks)} chunks from {filename}")
+                        print(f"    ✓ Completed {filename} ({len(chunks)} chunks)")
                     except Exception as e:
-                        print(f"    - ERROR processing file {file_path}: {e}")
+                        print(f"    ✗ ERROR processing file {file_path}: {e}")
     
+    print("\nFlushing all data to database...")
     collection.flush()
-    print(f"\nTotal chunks inserted: {total_chunks_inserted}")
+    elapsed = time.time() - start_time
+    print(f"Total chunks inserted: {total_chunks_inserted} (elapsed: {elapsed/60:.1f} minutes)")
     
-    print("Creating index for the collection...")
+    print("\nCreating index for the collection...")
     index_params = {"metric_type": "L2", "index_type": "IVF_FLAT", "params": {"nlist": 128}}
     collection.create_index(field_name="embedding", index_params=index_params)
     utility.wait_for_index_building_complete(_COLLECTION_NAME)
     print("Index created successfully.")
     
+    print("Loading collection into memory...")
     collection.load()
     print("Collection loaded into memory.")
     
-    print(f"--- Ingestion Complete in {time.time() - start_time:.2f} seconds ---")
+    total_time = time.time() - start_time
+    print(f"\n{'='*60}")
+    print(f"✓ Ingestion Complete!")
+    print(f"  Total chunks: {total_chunks_inserted}")
+    print(f"  Total time: {total_time/60:.1f} minutes ({total_time:.2f} seconds)")
+    print(f"  Average speed: {total_chunks_inserted/(total_time/60):.1f} chunks/minute")
+    print(f"{'='*60}")
 
 if __name__ == "__main__":
     main()
